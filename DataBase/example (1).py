@@ -86,6 +86,7 @@ def insert_data(cur):
             cur.execute('INSERT IGNORE INTO SC_Expression(Gene_ID,Condit_ID,SC_Expression) VALUES (%s,%s,%s)',
                         (gene, condit, sc))
 cnx = make_connection()
+print('hello')
 cur = cnx.cursor()
 setup_dp(cur)
 insert_data(cur)
