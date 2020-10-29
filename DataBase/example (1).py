@@ -25,7 +25,7 @@ def setup_dp(cur):
     cur.execute('DROP TABLE IF EXISTS "Team-Deliveries"');
     cur.execute('DROP TABLE IF EXISTS "Deliveries-matches"');
     cur.execute('DROP TABLE IF EXISTS "Team-Matche"');
-    , Team-Deliveries, Deliveries-matches,Team-Matches
+
     # Create Tables
     cur.execute(
         '''CREATE TABLE Player  (
@@ -83,11 +83,11 @@ def insert_data(cur):
         next(r1)
         for line in r1:
             line = line.split(',')
-                PlayerName = str(line.__getitem__(0))
-                DOB = line.__getitem__(1)
-                Batting_Hand = line.__getitem__(2)
-                Bowling_Skill = line.__getitem__(3)
-                Country = line.__getitem__(4)
+            PlayerName = line.__getitem__(0)
+            DOB = line.__getitem__(1)
+            Batting_Hand = line.__getitem__(2)
+            Bowling_Skill = line.__getitem__(3)
+            Country = line.__getitem__(4)
 
             cur.execute(
                 'INSERT IGNORE INTO Players VALUES (%s,%s,%s,%s,%s)',
@@ -137,7 +137,7 @@ def insert_data(cur):
             result = line.__getitem__(8)
 
             cur.execute('INSERT IGNORE INTO matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                        (ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result)))
+                        (ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
 cnx = make_connection()
 cur = cnx.cursor()
 setup_dp(cur)
