@@ -12,34 +12,76 @@ def make_connection():
                       port=3306, autocommit=True)
 def setup_dp(cur):
 
+# how to code first to do the tables to a find and replace of the table names and then just create the variables
     # Set up db
-    cur.execute('DROP DATABASE IF EXISTS yeast_transcriptomesDB');
-    cur.execute('CREATE DATABASE yeast_transcriptomesDB');
-    cur.execute('USE yeast_transcriptomesDB');
+    cur.execute('DROP DATABASE IF EXISTS "EnterDBName"');
+    cur.execute('CREATE DATABASE "EnterDBName"');
+    cur.execute('USE EnterDBName');
 
     # Drop Existing Tables
-    cur.execute('DROP TABLE IF EXISTS Conditions_Annotations');
-    cur.execute('DROP TABLE IF EXISTS Yeast_Gene');
-    cur.execute('DROP TABLE IF EXISTS Localization');
-    cur.execute('DROP TABLE IF EXISTS SC_Expression');
-    cur.execute('DROP TABLE IF EXISTS YeastGene_Localization');
+    cur.execute('DROP TABLE IF EXISTS "Player"');
+    cur.execute('DROP TABLE IF EXISTS "Deliveries"');
+    cur.execute('DROP TABLE IF EXISTS "Matches"');
+    cur.execute('DROP TABLE IF EXISTS "Team_Stats"');
+    cur.execute('DROP TABLE IF EXISTS "Team"');
+    cur.execute('DROP TABLE IF EXISTS "player-Deliveries"');
+    cur.execute('DROP TABLE IF EXISTS "Team-Deliveries"');
+    cur.execute('DROP TABLE IF EXISTS "Deliveries-matches"');
+    cur.execute('DROP TABLE IF EXISTS "Team-Matche"');
+    , Team-Deliveries, Deliveries-matches,Team-Matches
     # Create Tables
     cur.execute(
-        '''CREATE TABLE Conditions_Annotations (Condit_ID VARCHAR(30) NOT NULL PRIMARY KEY,PrimaryComponent VARCHAR(30),SecondaryComponent VARCHAR(30),Additional_Information VARCHAR(30));''')
+        '''CREATE TABLE Player  (
+        Name           VARCHAR(50) NOT NULL PRIMARY KEY,
+        DOB            Date        NOT NULL PRIMARY KEY,
+        Batting_Hand   VARCHAR(15),
+        country        VARCHAR(30),
+        Bowling_Skill  varchar(25),
+        team           varchar(50)
+        FOREIGN key (team) references Team(team) );''')
     cur.execute(
-        '''CREATE TABLE Yeast_Gene (Gene_ID VARCHAR(30) NOT NULL PRIMARY KEY,Validation VARCHAR(30),Biological_Process VARCHAR(30),Cellular_Component VARCHAR(30),Molecular_Function VARCHAR(30));''')
+        '''CREATE TABLE Deliveries  (
+        Match_ID          int NOT NULL PRIMARY KEY,
+        inning            int          PRIMARY KEY,
+        Batting_Team      VARCHAR(50) Primary key,
+        Bowling_Team      VARCHAR(50) Primary key,
+        Over              int Primary key,
+        Ball              int Primary key,
+        Batsman           Varchar(50),
+        Non_Striker       Varchar(50),
+        Bowler            Varchar(50)
+        );''')
     cur.execute(
-        '''CREATE TABLE Localization (Localization_ID INT NOT NULL PRIMARY KEY,Biological_Process_Loc VARCHAR(30),Cellular_Component_Loc VARCHAR(30),Molecular_Function VARCHAR(30));''')
+        '''CREATE TABLE Matches  (
+        Match_ID INT NOT NULL PRIMARY KEY ,
+        Season                  Varchar(50),
+        City                    Varchar(50),
+        Date                    Date,
+        Team1                   Varchar(50),
+        Team2                   Varchar(50),
+        TossWnner               Varchar(50),
+        TossDescision           Varchar(5),
+        Result                  Varchar(8)
+        );''')
     # Create Join Tables
     cur.execute(
-        '''CREATE TABLE SC_Expression (SC_ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,Gene_ID VARCHAR(30) NOT NULL ,Condit_ID VARCHAR(30) NOT NULL, FOREIGN KEY(Gene_ID) REFERENCES Yeast_Gene(Gene_ID),FOREIGN KEY(Condit_ID) REFERENCES Conditions_Annotations(Condit_ID),SC_Expression FLOAT);''')
+        '''CREATE TABLE Team_Stats (
+        TeamS           Varchar(50) Not NULL Primary Key,
+        HomeWins        Int,
+        AwayWins        Int ,
+        HomeMatches     Int,
+        AwayMatches     Int
+        );''')
     cur.execute(
-        '''CREATE TABLE YeastGene_Localization (Gene_local_ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY, Gene_ID VARCHAR(30) NOT NULL, Localization_ID INT NOT NULL , FOREIGN KEY(Gene_ID) REFERENCES Yeast_Gene(Gene_ID),FOREIGN KEY(Localization_ID) REFERENCES Localization(Localization_ID));''')
-
-
+        '''CREATE TABLE Team (
+        Team Varchar(20) not null Primary Key,
+        teamS varchar(50)
+        FOREIGN KEY (teamS) references Team_Stats(TeamS)
+        );''')
+#we still need to make tables for player-Deliveries, Team-Deliveries, Deliveries-matches,Team-Matches
 def insert_data(cur):
         # Insertions for conditions table
-    with open("data/rf_conditions_annotations.csv", 'r') as r1:
+    with open("data/Players.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
         for line in r1:
@@ -51,10 +93,10 @@ def insert_data(cur):
             additional_info = line.__getitem__(4)
             # print(ID_num,sample_ID,primary,secondary,additional_info)
             cur.execute(
-                'INSERT IGNORE INTO Conditions_Annotations(Condit_ID,PrimaryComponent,SecondaryComponent,Additional_Information) VALUES (%s,%s,%s,%s)',
+                'INSERT IGNORE INTO Player(,PrimaryComponent,SecondaryComponent,Additional_Information) VALUES (%s,%s,%s,%s)',
                 (sample_ID, primary, secondary, additional_info))
     # insertions for Yeast-gene and Localization table and Yeast-gene&localization join table
-    with open("data/combined_BP_CC_MF.csv", 'r') as r1:
+    with open("data/deliveries.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
         for line in r1:
@@ -74,7 +116,7 @@ def insert_data(cur):
                 (ID_num, bp, cc, mf))
             cur.execute('INSERT IGNORE INTO YeastGene_Localization(Gene_ID,Localization_ID) VALUES (%s,%s)', (gene, ID_num))
     # insertion for SC expression table
-    with open("data/rf_SC_expressions.csv", 'r') as r1:
+    with open("data/matches.csv", 'r') as r1:
         next(r1)
         for line in r1:
             line = line.split(',')
