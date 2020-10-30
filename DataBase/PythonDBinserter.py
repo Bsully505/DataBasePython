@@ -16,27 +16,56 @@ def setup_dp(cur):
     cur.execute('USE IPL_DATA_SET');
 
     # Drop Existing Tables
-    cur.execute('DROP TABLE IF EXISTS "Player"');
-    cur.execute('DROP TABLE IF EXISTS "Deliveries"');
-    cur.execute('DROP TABLE IF EXISTS "Matches"');
-    cur.execute('DROP TABLE IF EXISTS "Team_Stats"');
-    cur.execute('DROP TABLE IF EXISTS "Team"');
-    cur.execute('DROP TABLE IF EXISTS "player-Deliveries"');
-    cur.execute('DROP TABLE IF EXISTS "Team-Deliveries"');
-    cur.execute('DROP TABLE IF EXISTS "Deliveries-matches"');
-    cur.execute('DROP TABLE IF EXISTS "Team-Matche"');
+    cur.execute('DROP TABLE IF EXISTS Player');
+    cur.execute('DROP TABLE IF EXISTS Deliveries');
+    cur.execute('DROP TABLE IF EXISTS Matches');
+    cur.execute('DROP TABLE IF EXISTS Team_Stats');
+    cur.execute('DROP TABLE IF EXISTS Team');
+    #cur.execute('DROP TABLE IF EXISTS player-Deliveries');
+    #cur.execute('DROP TABLE IF EXISTS Team-Deliveries');
+    #cur.execute('DROP TABLE IF EXISTS Deliveries-matches');
+    #cur.execute('DROP TABLE IF EXISTS Team-Matche');
 
     # Create Tables
     cur.execute(
-        '''CREATE TABLE Player  (
-        Name           VARCHAR(50) NOT NULL PRIMARY KEY,
-        DOB            Date        NOT NULL PRIMARY KEY,
-        Batting_Hand   VARCHAR(15),
-        country        VARCHAR(30),
-        Bowling_Skill  varchar(25),
-        team           varchar(50)
-        FOREIGN key (team) references Team(team) );''')
+        '''CREATE TABLE Team_Stats (
+        TeamS           Varchar(50) NOT NULL PRMARY KEY,
+        HomeWins        Int,
+        AwayWins        Int ,
+        HomeMatches     Int,
+        AwayMatches     Int
+        );''')
     cur.execute(
+            '''CREATE TABLE Team (
+            Team       Varchar(20) NOT NULL PRIMARY KEY,
+            teamS      Varchar(50)
+            FOREIGN KEY (teamS) references Team_Stats(TeamS)
+            );''')
+    cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(team) );''')
+
+
+
+
+
+        #'''CREATE TABLE Player  (
+        #Name           VARCHAR(50) NOT NULL PRIMARY KEY,
+        #DOB            Date        NOT NULL PRIMARY KEY,
+        #Batting_Hand   VARCHAR(15),
+        #country        VARCHAR(30),
+        #Bowling_Skill  varchar(25),
+        #team           varchar(50)
+        #FOREIGN key (team) references Team(team) );''')
+
+    cur.execute('''CREATE TABLE Deliveries(Match_ID          Int NOT NULL PRIMARY KEY,
+    inning Int PRIMARY KEY,
+    Batting_Team VARCHAR(50) PRMARY KEY,
+    Bowling_Team VARCHAR(50) PRIMARY KEY,
+    Over              Int PRIMARY KEY,
+    Ball              Int PRIMARY KEY,
+    Batsman           Varchar(50),
+    Non_Striker       Varchar(50),
+    Bowler            Varchar(50)
+    );''')
         '''CREATE TABLE Deliveries  (
         Match_ID          Int NOT NULL PRIMARY KEY,
         inning            Int          PRIMARY KEY,
@@ -61,20 +90,8 @@ def setup_dp(cur):
         Result                  Varchar(8)
         );''')
     # Create Join Tables
-    cur.execute(
-        '''CREATE TABLE Team_Stats (
-        TeamS           Varchar(50) NOT NULL PRMARY KEY,
-        HomeWins        Int,
-        AwayWins        Int ,
-        HomeMatches     Int,
-        AwayMatches     Int
-        );''')
-    cur.execute(
-        '''CREATE TABLE Team (
-        Team       Varchar(20) NOT NULL PRIMARY KEY,
-        teamS      Varchar(50)
-        FOREIGN KEY (teamS) references Team_Stats(TeamS)
-        );''')
+
+
 #we still need to make tables for player-Deliveries, Team-Deliveries, Deliveries-matches,Team-Matches
 def insert_data(cur):
         # Insertions for conditions table
