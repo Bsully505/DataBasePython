@@ -32,6 +32,9 @@ def setup_dp(cur):
     cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(team) );''')
 
 
+#city own table
+#merge team with another table.
+
 
 
 
