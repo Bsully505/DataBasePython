@@ -27,22 +27,13 @@ def setup_dp(cur):
     #cur.execute('DROP TABLE IF EXISTS Team-Matche');
 
     # Create Tables
-    cur.execute(
-        '''CREATE TABLE Team_Stats (
-        TeamS           Varchar(50) NOT NULL PRMARY KEY,
-        HomeWins        Int,
-        AwayWins        Int ,
-        HomeMatches     Int,
-        AwayMatches     Int
-        );''')
-    cur.execute(
-            '''CREATE TABLE Team (
-            Team       Varchar(20) NOT NULL PRIMARY KEY,
-            teamS      Varchar(50)
-            FOREIGN KEY (teamS) references Team_Stats(TeamS)
-            );''')
+    cur.execute('''CREATE TABLE Team_Stats (TeamS Varchar(50) NOT NULL PRIMARY KEY, HomeWins Int, AwayWins Int, HomeMatches Int, AwayMatches Int);''')
+    cur.execute('''CREATE TABLE Team (Team Varchar(20) NOT NULL PRIMARY KEY, teamS Varchar(50),FOREIGN KEY (teamS) references Team_Stats(TeamS));''')
     cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(team) );''')
 
+
+#city own table
+#merge team with another table.
 
 
 
@@ -56,27 +47,18 @@ def setup_dp(cur):
         #team           varchar(50)
         #FOREIGN key (team) references Team(team) );''')
 
-    cur.execute('''CREATE TABLE Deliveries(Match_ID          Int NOT NULL PRIMARY KEY,
-    inning Int PRIMARY KEY,
-    Batting_Team VARCHAR(50) PRMARY KEY,
-    Bowling_Team VARCHAR(50) PRIMARY KEY,
-    Over              Int PRIMARY KEY,
-    Ball              Int PRIMARY KEY,
-    Batsman           Varchar(50),
-    Non_Striker       Varchar(50),
-    Bowler            Varchar(50)
-    );''')
-        '''CREATE TABLE Deliveries  (
-        Match_ID          Int NOT NULL PRIMARY KEY,
-        inning            Int          PRIMARY KEY,
-        Batting_Team      VARCHAR(50) PRMARY KEY,
-        Bowling_Team      VARCHAR(50) PRIMARY KEY,
-        Over              Int PRIMARY KEY,
-        Ball              Int PRIMARY KEY,
-        Batsman           Varchar(50),
-        Non_Striker       Varchar(50),
-        Bowler            Varchar(50)
-        );''')
+    cur.execute('CREATE TABLE Deliveries(Match_ID Int NOT NULL PRIMARY KEY, inning Int PRIMARY KEY, Batting_Team VARCHAR(50) PRMARY KEY, Bowling_Team VARCHAR(50) PRIMARY KEY, Over Int PRIMARY KEY, Ball Int PRIMARY KEY, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50));')
+        #'''CREATE TABLE Deliveries  (
+        #Match_ID          Int NOT NULL PRIMARY KEY,
+        #inning            Int          PRIMARY KEY,
+        #Batting_Team      VARCHAR(50) PRMARY KEY,
+        #Bowling_Team      VARCHAR(50) PRIMARY KEY,
+        #Over              Int PRIMARY KEY,
+        #Ball              Int PRIMARY KEY,
+        #Batsman           Varchar(50),
+        #Non_Striker       Varchar(50),
+        #Bowler            Varchar(50)
+        #);''')
     cur.execute(
         '''CREATE TABLE Matches  (
         Match_ID INT NOT NULL PRIMARY KEY ,
