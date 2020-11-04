@@ -19,7 +19,6 @@ def setup_dp(cur):
     cur.execute('DROP TABLE IF EXISTS Player');
     cur.execute('DROP TABLE IF EXISTS Deliveries');
     cur.execute('DROP TABLE IF EXISTS Matches');
-    cur.execute('DROP TABLE IF EXISTS Team_Stats');
     cur.execute('DROP TABLE IF EXISTS Team');
     #cur.execute('DROP TABLE IF EXISTS player-Deliveries');
     #cur.execute('DROP TABLE IF EXISTS Team-Deliveries');
@@ -27,50 +26,48 @@ def setup_dp(cur):
     #cur.execute('DROP TABLE IF EXISTS Team-Matche');
 
     # Create Tables
-    cur.execute('''CREATE TABLE Team_Stats (TeamS Varchar(50) NOT NULL PRIMARY KEY, HomeWins Int, AwayWins Int, HomeMatches Int, AwayMatches Int);''')
-    cur.execute('''CREATE TABLE Team (Team Varchar(20) NOT NULL PRIMARY KEY, teamS Varchar(50),FOREIGN KEY (teamS) references Team_Stats(TeamS));''')
+    cur.execute('''CREATE TABLE Team(TeamName Varchar(20) NOT NULL PRIMARY KEY, HomeWins Int, HomeMatches Int, AwayMatches Int);''')
     cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(team) );''')
-
-
+    cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
+    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), Date date, Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
 #city own table
-#merge team with another table.
 
 
 
 
-        #'''CREATE TABLE Player  (
-        #Name           VARCHAR(50) NOT NULL PRIMARY KEY,
-        #DOB            Date        NOT NULL PRIMARY KEY,
-        #Batting_Hand   VARCHAR(15),
-        #country        VARCHAR(30),
-        #Bowling_Skill  varchar(25),
-        #team           varchar(50)
-        #FOREIGN key (team) references Team(team) );''')
 
-    cur.execute('CREATE TABLE Deliveries(Match_ID Int NOT NULL PRIMARY KEY, inning Int PRIMARY KEY, Batting_Team VARCHAR(50) PRMARY KEY, Bowling_Team VARCHAR(50) PRIMARY KEY, Over Int PRIMARY KEY, Ball Int PRIMARY KEY, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50));')
-        #'''CREATE TABLE Deliveries  (
-        #Match_ID          Int NOT NULL PRIMARY KEY,
-        #inning            Int          PRIMARY KEY,
-        #Batting_Team      VARCHAR(50) PRMARY KEY,
-        #Bowling_Team      VARCHAR(50) PRIMARY KEY,
-        #Over              Int PRIMARY KEY,
-        #Ball              Int PRIMARY KEY,
-        #Batsman           Varchar(50),
-        #Non_Striker       Varchar(50),
-        #Bowler            Varchar(50)
-        #);''')
-    cur.execute(
-        '''CREATE TABLE Matches  (
-        Match_ID INT NOT NULL PRIMARY KEY ,
-        Season                  Varchar(50),
-        City                    Varchar(50),
-        Date                    DATE,
-        Team1                   Varchar(50),
-        Team2                   Varchar(50),
-        TossWnner               Varchar(50),
-        TossDescision           Varchar(5),
-        Result                  Varchar(8)
-        );''')
+#'''CREATE TABLE Player  (
+#Name           VARCHAR(50) NOT NULL PRIMARY KEY,
+#DOB            Date        NOT NULL PRIMARY KEY,
+#Batting_Hand   VARCHAR(15),
+#country        VARCHAR(30),
+#Bowling_Skill  varchar(25),
+#team           varchar(50)
+#FOREIGN key (team) references Team(TeamName) );''')
+
+#CREATE TABLE Deliveries  (
+#Match_ID          Int NOT NULL,
+#inning            Int,
+#Batting_Team      VARCHAR(50),
+#Bowling_Team      VARCHAR(50),
+#OverNum           Int,
+#Ball              Int,
+#Batsman           Varchar(50),
+#Non_Striker       Varchar(50),
+#Bowler            Varchar(50),
+#Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball)
+#);
+
+#CREATE TABLE Matches(
+#Match_ID INT NOT NULL PRIMARY KEY auto_increment,
+#Season                  Varchar(50),
+#Date                    DATE,
+#Team1                   Varchar(50),
+#Team2                   Varchar(50),
+#TossWnner               Varchar(50),
+#TossDescision           Varchar(5),
+#Result                  Varchar(8)
+#)        
     # Create Join Tables
 
 
