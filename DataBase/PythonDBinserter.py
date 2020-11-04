@@ -27,7 +27,7 @@ def setup_dp(cur):
 
     # Create Tables
     cur.execute('''CREATE TABLE Team(TeamName Varchar(20) NOT NULL PRIMARY KEY, HomeWins Int, HomeMatches Int, AwayMatches Int);''')
-    cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(team) );''')
+    cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(TeamName) );''')
     cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
     cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), Date date, Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
 #city own table
@@ -67,7 +67,7 @@ def setup_dp(cur):
 #TossWnner               Varchar(50),
 #TossDescision           Varchar(5),
 #Result                  Varchar(8)
-#)        
+#)
     # Create Join Tables
 
 
@@ -84,10 +84,12 @@ def insert_data(cur):
             Batting_Hand = line.__getitem__(2)
             Bowling_Skill = line.__getitem__(3)
             Country = line.__getitem__(4)
+            Team = line.__getitem__(5)
+            next(r1)
 
             cur.execute(
-                'INSERT IGNORE INTO Players VALUES (%s,%s,%s,%s,%s)',
-                (PlayerName, DOB, Batting_Hand, Bowling_Skill, country))
+                'INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
+                (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
             # print(ID_num,sample_ID,primary,secondary,additional_info)
     # insertions for Yeast-gene and Localization table and Yeast-gene&localization join table
     with open("data/deliveries.csv", 'r') as r1:
@@ -108,9 +110,10 @@ def insert_data(cur):
             batsman = line.__getitem__(6)
             non_striker = line.__getitem__(7)
             bowler = line.__getitem__(8)
+            next(r1)
 
             cur.execute(
-                'INSERT IGNORE INTO Players VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
+                'INSERT IGNORE INTO deliveries VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
                 (Match_ID, inning, Batting_team, Bowling_team, over, ball, batsman, non_striker, bowler))
             #cur.execute(
             #    'INSERT IGNORE INTO Localization(Localization_ID,Biological_Process_Loc,Cellular_Component_Loc,Molecular_Function) VALUES (%s,%s,%s,%s)',
@@ -131,6 +134,7 @@ def insert_data(cur):
             toss_winner = line.__getitem__(6)
             toss_decision = line.__getitem__(7)
             result = line.__getitem__(8)
+            next(r1)
 
             cur.execute('INSERT IGNORE INTO matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                         (ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
