@@ -27,9 +27,9 @@ def setup_dp(cur):
 
     # Create Tables
     cur.execute('''CREATE TABLE Team(TeamName Varchar(20) NOT NULL PRIMARY KEY, HomeWins Int,AwayWins Int, HomeMatches Int, AwayMatches Int);''')
-    cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(TeamName) );''')
+    cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB VarChar(50) NOT NULL,Batting_Hand VARCHAR(15),Bowling_Skill varchar(25) not null, country VARCHAR(30),team varchar(50) references Team(TeamName) );''')
     cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
-    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50),City Varchar(50), Date date, Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
+    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), City Varchar(50), Date Varchar(20), Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
     cur.execute('''create Table Deliveries_Matches(Match_ID int Not Null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
     cur.execute('''Create Table Player_Deliveries (Team Varchar(20) Not Null references Player(Name), DOB date REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
     cur.execute('''Create Table Team_Matches(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID),primary key (TeamName, Match_ID));''')
@@ -121,7 +121,8 @@ def insert_data(cur):
             Bowling_Skill = line.__getitem__(3)
             Country = line.__getitem__(4)
             Team = line.__getitem__(5)
-            cur.execute('INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',(PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
+            cur.execute('INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
+            (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
             # print(ID_num,sample_ID,primary,secondary,additional_info)
 
 
@@ -154,6 +155,7 @@ def insert_data(cur):
 
 
     # insertions for Yeast-gene and Localization table and Yeast-gene&localization join table
+
     with open("data/deliveries.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
@@ -176,6 +178,8 @@ def insert_data(cur):
             #    (ID_num, bp, cc, mf))
             #cur.execute('INSERT IGNORE INTO YeastGene_Localization(Gene_ID,Localization_ID) VALUES (%s,%s)', (gene, ID_num))
     # insertion for SC expression table
+
+
     with open("data/matches.csv", 'r') as r1:
         next(r1)
         for line in r1:
@@ -190,7 +194,8 @@ def insert_data(cur):
             toss_winner = line.__getitem__(6)
             toss_decision = line.__getitem__(7)
             result = line.__getitem__(8)
-            cur.execute('INSERT IGNORE INTO matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
+            cur.execute('INSERT IGNORE INTO Matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
+
 cnx = make_connection()
 cur = cnx.cursor()
 setup_dp(cur)
