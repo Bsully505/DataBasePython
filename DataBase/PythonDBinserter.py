@@ -1,6 +1,6 @@
 import pymysql as ps
 
-#AUTHORS BRYAN SULLIVAN and HENOK KELSELA
+#AUTHORS BRYAN SULLIVAN and HENOK KETSELA
 
 
 def make_connection():
@@ -20,21 +20,56 @@ def setup_dp(cur):
     cur.execute('DROP TABLE IF EXISTS Deliveries');
     cur.execute('DROP TABLE IF EXISTS Matches');
     cur.execute('DROP TABLE IF EXISTS Team');
-    #cur.execute('DROP TABLE IF EXISTS player-Deliveries');
-    #cur.execute('DROP TABLE IF EXISTS Team-Deliveries');
-    #cur.execute('DROP TABLE IF EXISTS Deliveries-matches');
-    #cur.execute('DROP TABLE IF EXISTS Team-Matche');
+    cur.execute('DROP TABLE IF EXISTS player_Deliveries');
+    cur.execute('DROP TABLE IF EXISTS Team_Deliveries');
+    cur.execute('DROP TABLE IF EXISTS Deliveries_Matches');
+    cur.execute('DROP TABLE IF EXISTS Team_Matches');
 
     # Create Tables
     cur.execute('''CREATE TABLE Team(TeamName Varchar(20) NOT NULL PRIMARY KEY, HomeWins Int, HomeMatches Int, AwayMatches Int);''')
     cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB Date NOT NULL,Batting_Hand VARCHAR(15),country VARCHAR(30),Bowling_Skill varchar(25),team varchar(50),FOREIGN key (team) references Team(TeamName) );''')
     cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
-    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), Date date, Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
-#city own table
+    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50),City Varchar(50), Date date, Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
+    cur.execute('''create Table Deliveries_Matches(Match_ID int Not Null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
+    cur.execute('''Create Table Player_Deliveries (Team Varchar(20) Not Null references Player(Name), DOB date REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
+    cur.execute('''Create Table Team_Matches(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID),primary key (TeamName, Match_ID));''')
+    cur.execute('''Create table Team_Deliveries(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (TeamName, Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
+
+#Create table Team_Deliveries(
+#TeamN varchar(20) Not null references Team(TeamN),
+#Match_ID int not null references Matches(Match_ID),
+#inning int not null references Deliveries(inning),
+#Batting_team Varchar(50) not null references Deliveries(Batting_team),
+#Bowling_team varchar(50) not null references Deliveries(Bowling_team),
+#Overnum int not null references Deliveries(overnum),
+#Ball int not null references Deliveries(ball),
+#Primary Key (TeamN, Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));
 
 
+#Create Table Team_Matches(
+#TeamN varchar(20) Not null references Team(TeamN),
+#Match_ID int not null references Matches(Match_ID),
+#primary key (TeamN, Match_ID));
 
+#Create Table Player_Deliveries (
+#Team Varchar(20) Not Null references Player(Name),
+#DOB date REFERENCES Player(DOB),
+#Match_ID int Not Null REFERENCES Deliveries(Match_ID),
+#inning int REFERENCES Deliveries(inning),
+#batting_team varchar(50) REFERENCES Deliveries(batting_team),
+#bowling_team varchar(50) REFERENCES Deliveries(bowling_team),
+#overnum int REFERENCES Deliveries(overnum),
+#ball int REFERENCES Deliveries(ball),
+#Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));
 
+#Create Table Deliveries_Matches(
+#Match_ID int Not null references Matches(Match_ID),
+#inning int not null references Deliveries(inning),
+#Batting_team Varchar(50) not null references Deliveries(Batting_team),
+#Bowling_team varchar(50) not null references Deliveries(Bowling_team),
+#Overnum int not null references Deliveries(overnum),
+#Ball int not null references Deliveries(ball),
+#Primary Key (Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));
 
 #'''CREATE TABLE Player  (
 #Name           VARCHAR(50) NOT NULL PRIMARY KEY,
@@ -61,6 +96,7 @@ def setup_dp(cur):
 #CREATE TABLE Matches(
 #Match_ID INT NOT NULL PRIMARY KEY auto_increment,
 #Season                  Varchar(50),
+#city                    Varchar(50),
 #Date                    DATE,
 #Team1                   Varchar(50),
 #Team2                   Varchar(50),
@@ -91,18 +127,46 @@ def insert_data(cur):
                 'INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
                 (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
             # print(ID_num,sample_ID,primary,secondary,additional_info)
+
+
+
+
+
+
+
+    with open("data/teamwise_home_and_away.csv", 'r') as r1:
+        # skips first line the headers
+        next(r1)
+        for line in r1:
+            line = line.split(',')
+            TeamName = line.__getitem__(0)
+            home_wins = int(line.__getitem__(1))
+            home_wins = str(home_wins)
+            away_wins = int(line.__getitem__(2))
+            away_wins = str(away_wins)
+            Batting_Hand = line.__getitem__(2)
+            Bowling_Skill = line.__getitem__(3)
+            Country = line.__getitem__(4)
+            Team = line.__getitem__(5)
+
+
+            cur.execute(
+                'INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
+                (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
+            # print(ID_num,sample_ID,primary,secondary,additional_info)
+
+
+
     # insertions for Yeast-gene and Localization table and Yeast-gene&localization join table
     with open("data/deliveries.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
         for line in r1:
             line = line.split(',')
-            Match_ID = int(line.__getitem__(0))
-            Match_ID = str(ID_num)
-            inning = int(line.__getitem__(1))
-            inning = str(ID_num)
+            Match_ID = str(int(line.__getitem__(0)))
+            inning = str(int(line.__getitem__(1)))
             Batting_team = line.__getitem__(2)
-            Bowling_Team = line.__getitem__(3)
+            Bowling_team = line.__getitem__(3)
             over = int(line.__getitem__(4))
             over = str(over)
             Ball = int(line.__getitem__(5))
@@ -110,11 +174,11 @@ def insert_data(cur):
             batsman = line.__getitem__(6)
             non_striker = line.__getitem__(7)
             bowler = line.__getitem__(8)
-            next(r1)
+
 
             cur.execute(
-                'INSERT IGNORE INTO deliveries VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
-                (Match_ID, inning, Batting_team, Bowling_team, over, ball, batsman, non_striker, bowler))
+                'INSERT IGNORE INTO Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+                (Match_ID, inning, Batting_team, Bowling_team, over, Ball, batsman, non_striker, bowler))
             #cur.execute(
             #    'INSERT IGNORE INTO Localization(Localization_ID,Biological_Process_Loc,Cellular_Component_Loc,Molecular_Function) VALUES (%s,%s,%s,%s)',
             #    (ID_num, bp, cc, mf))
@@ -134,7 +198,7 @@ def insert_data(cur):
             toss_winner = line.__getitem__(6)
             toss_decision = line.__getitem__(7)
             result = line.__getitem__(8)
-            next(r1)
+
 
             cur.execute('INSERT IGNORE INTO matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                         (ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
@@ -145,3 +209,4 @@ insert_data(cur)
 cur.close()
 cnx.commit()
 cnx.close()
+print("ended");
