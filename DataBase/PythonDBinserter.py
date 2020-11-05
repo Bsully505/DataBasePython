@@ -11,8 +11,8 @@ def setup_dp(cur):
 
 # how to code first to do the tables to a find and replace of the table names and then just create the variables
     # Set up db
-    cur.execute('DROP DATABASE IF EXISTS IPL_DATA_SET');
-    cur.execute('CREATE DATABASE IPL_DATA_SET');
+    #cur.execute('DROP DATABASE IF EXISTS IPL_DATA_SET');
+    #cur.execute('CREATE DATABASE IPL_DATA_SET');
     cur.execute('USE IPL_DATA_SET');
 
     # Drop Existing Tables
@@ -20,7 +20,7 @@ def setup_dp(cur):
     cur.execute('DROP TABLE IF EXISTS Deliveries');
     cur.execute('DROP TABLE IF EXISTS Matches');
     cur.execute('DROP TABLE IF EXISTS Team');
-    cur.execute('DROP TABLE IF EXISTS player_Deliveries');
+    cur.execute('DROP TABLE IF EXISTS Player_Deliveries');
     cur.execute('DROP TABLE IF EXISTS Team_Deliveries');
     cur.execute('DROP TABLE IF EXISTS Deliveries_Matches');
     cur.execute('DROP TABLE IF EXISTS Team_Matches');
@@ -31,7 +31,7 @@ def setup_dp(cur):
     cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
     cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), City Varchar(50), Date Varchar(20), Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
     cur.execute('''create Table Deliveries_Matches(Match_ID int Not Null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
-    cur.execute('''Create Table Player_Deliveries (Team Varchar(20) Not Null references Player(Name), DOB date REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
+    cur.execute('''Create Table Player_Deliveries (Team Varchar(20) Not Null references Player(Name), DOB Varchar(20) REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
     cur.execute('''Create Table Team_Matches(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID),primary key (TeamName, Match_ID));''')
     cur.execute('''Create table Team_Deliveries(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (TeamName, Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
 
@@ -229,7 +229,45 @@ def insert_data(cur):
             ball = str(ball)
             cur.execute('INSERT IGNORE INTO Team_Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s)',(TeamName, match_id, inning, batting_team, bowler,over,ball));
 
-   
+    with open("data/Player_Deliveries.csv", 'r') as r1:
+         next(r1)
+         for line in r1:
+             line = line.split(',')
+             Team = line.__getitem__(0)
+             Team = Team[1:len(Team)- 1]
+             DOB = line.__getitem__(1)
+             Match_ID = line.__getitem__(2)
+             Match_ID = str(Match_ID)
+             inning = line.__getitem__(3)
+             inning = str(inning)
+             Batting_Team = line.__getitem__(4)
+             Batting_Team = Batting_Team[1:len(Batting_Team)- 1]
+             Bowling_Team = line.__getitem__(5)
+             Bowling_Team = Bowling_Team[1:len(Bowling_Team)- 1]
+             over = line.__getitem__(6)
+             over = str(over)
+             Ball = line.__getitem__(7)
+             Ball = str(Ball)
+             cur.execute('INSERT IGNORE INTO Player_Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',(Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, over, Ball));
+
+with open("data/Matches_Deliveries.csv", 'r') as r1:
+        next(r1)
+        for line in r1:
+            line = line.split(',')
+            MatchID = int(line.__getitem__(0))
+            MatchID = str(MatchID)
+            inning = line.__getitem__(1)
+            inning = str(inning)
+            batting_team = line.__getitem__(2)
+            batting_team = batting_team[1:len(batting_team)- 1]
+            bowling_team = line.__getitem__(3)
+            bowling_team = bowler[1:len(bowling_team)- 1]
+            over = line.__getitem__(4)
+            over = str(over)
+            ball = line.__getitem__(5)
+            ball = str(ball)
+            cur.execute('INSERT IGNORE INTO Deliveries_Matches VALUES (%s,%s,%s,%s,%s,%s)',( MatchID, inning, batting_team, bowling_team,over,ball));
+
 
 cnx = make_connection()
 cur = cnx.cursor()
