@@ -155,7 +155,7 @@ def insert_data(cur):
 
 
     # insertions for Yeast-gene and Localization table and Yeast-gene&localization join table
-
+    """
     with open("data/deliveries.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
@@ -178,7 +178,7 @@ def insert_data(cur):
             #    (ID_num, bp, cc, mf))
             #cur.execute('INSERT IGNORE INTO YeastGene_Localization(Gene_ID,Localization_ID) VALUES (%s,%s)', (gene, ID_num))
     # insertion for SC expression table
-
+    """
 
     with open("data/matches.csv", 'r') as r1:
         next(r1)
@@ -196,12 +196,44 @@ def insert_data(cur):
             result = line.__getitem__(8)
             cur.execute('INSERT IGNORE INTO Matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
 
+    with open("data/Team_Matches.csv", 'r') as r1:
+        # skips first line the headers
+        next(r1)
+        for line in r1:
+            line = line.split(',')
+            Match_ID = line.__getitem__(0)
+            Match_ID = str(Match_ID)
+            TeamName = line.__getitem__(1)
+            TeamName = TeamName[1:len(TeamName)- 1]
+            cur.execute(
+                'INSERT IGNORE INTO Team_Matches VALUES (%s,%s)',
+                (TeamName, Match_ID))
+
+    with open("data/Team_Deliveries.csv", 'r') as r1:
+        next(r1)
+        for line in r1:
+            line = line.split(',')
+            TeamName = line.__getitem__(0)
+            TeamName = TeamName[1:len(TeamName)- 1]
+            match_id = line.__getitem__(1)
+            match_id = str(match_id)
+            inning = line.__getitem__(2)
+            inning = str(inning)
+            batting_team = line.__getitem__(3)
+            batting_team = batting_team[1:len(batting_team)- 1]
+            bowler = line.__getitem__(4)
+            bowler = bowler[1:len(bowler)- 1]
+            over = line.__getitem__(5)
+            over = str(over)
+            ball = line.__getitem__(6)
+            ball = str(ball)
+            cur.execute('INSERT IGNORE INTO Team_Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s)',(TeamName, match_id, inning, batting_team, bowler,over,ball));
+
+
 cnx = make_connection()
 cur = cnx.cursor()
 setup_dp(cur)
 insert_data(cur)
-print("hello")
 cur.close()
 cnx.commit()
 cnx.close()
-print("ended");
