@@ -229,6 +229,7 @@ def insert_data(cur):
             ball = str(ball)
             cur.execute('INSERT IGNORE INTO Team_Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s)',(TeamName, match_id, inning, batting_team, bowler,over,ball));
 
+   
 
 cnx = make_connection()
 cur = cnx.cursor()
