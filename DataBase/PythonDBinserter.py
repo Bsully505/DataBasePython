@@ -1,5 +1,6 @@
 import pymysql as ps
 import matplotlib.pyplot as plt
+import matplotlib.axis as ax
 
 #AUTHORS BRYAN SULLIVAN and HENOK KETSELA
 
@@ -27,14 +28,14 @@ def setup_dp(cur):
     cur.execute('DROP TABLE IF EXISTS Team_Matches');
 
     # Create Tables
-    cur.execute('''CREATE TABLE Team(TeamName Varchar(20) NOT NULL PRIMARY KEY, HomeWins Int,AwayWins Int, HomeMatches Int, AwayMatches Int);''')
+    cur.execute('''CREATE TABLE Team(TeamName Varchar(50) NOT NULL PRIMARY KEY, HomeWins Int,AwayWins Int, HomeMatches Int, AwayMatches Int);''')
     cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB VarChar(50) NOT NULL,Batting_Hand VARCHAR(15),Bowling_Skill varchar(25) not null, country VARCHAR(30),team varchar(50) references Team(TeamName) );''')
     cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
     cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), City Varchar(50), Date Varchar(20), Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
     cur.execute('''create Table Deliveries_Matches(Match_ID int Not Null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
-    cur.execute('''Create Table Player_Deliveries (Team Varchar(20) Not Null references Player(Name), DOB Varchar(20) REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
-    cur.execute('''Create Table Team_Matches(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID),primary key (TeamName, Match_ID));''')
-    cur.execute('''Create table Team_Deliveries(TeamName varchar(20) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (TeamName, Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
+    cur.execute('''Create Table Player_Deliveries (Team Varchar(50) Not Null references Player(Name), DOB Varchar(20) REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
+    cur.execute('''Create Table Team_Matches(TeamName varchar(50) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID),primary key (TeamName, Match_ID));''')
+    cur.execute('''Create table Team_Deliveries(TeamName varchar(50) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (TeamName, Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
 
 
 
@@ -67,14 +68,14 @@ def insert_data(cur):
             away_wins = int(line.__getitem__(2))
             away_wins = str(away_wins)
             home_matches = int(line.__getitem__(3))
-            home_matches = str(home_wins)
+            home_matches = str(home_matches)
             away_matches = int(line.__getitem__(4))
             away_matches = str(away_matches)
 
 
             cur.execute(
                 'INSERT IGNORE INTO Team VALUES (%s,%s,%s,%s,%s)',
-                (TeamName, home_wins, away_wins, home_wins,away_wins))
+                (TeamName, home_wins, away_wins, home_matches,away_matches))
 
 
     # insertions for deliveries join table
@@ -188,17 +189,120 @@ def insert_data(cur):
                 ball = line.__getitem__(5)
                 ball = str(ball)
                 cur.execute('INSERT IGNORE INTO Deliveries_Matches VALUES (%s,%s,%s,%s,%s,%s)',( MatchID, inning, batting_team, bowling_team,over,ball));
-def createData(cur):
-    #plan of attack is to create multiple math graphs with data away win percentage home win percentage
+def createData(cur):#change the name of this function
 
-    data ={}
+    cur.execute('use IPL_DATA_SET');
+    cur.execute('Select TeamName, HomeWins, AwayWins,HomeMatches, AwayMatches From Team');
+    QuerryResponse  = cur.fetchall();
+    teamname= []
+    HomeWin = []
+    AwayWin = []
+
+
+    for i in range(0, len(QuerryResponse)):
+        teamname.insert(0, QuerryResponse[i][0]);
+        HomeWin.insert(0,(QuerryResponse[i][1]/QuerryResponse[i][3])*100);
+        AwayWin.insert(0,(QuerryResponse[i][2]/QuerryResponse[i][4])*100);
+
+
+    HomeWinPercentGraph(teamname, HomeWin);
+
+    AwayWinPercentGraph(teamname,AwayWin);
+
+
+    #plt.savefig('HomeWinPercentage.png') to save the file
+
+def CreateDOBGraph(cur):
+    cur.execute('use IPL_DATA_SET');
+    cur.execute('select DOB from Player');
+    QuerryResponse= cur.fetchall();
+    count69thru72 = 0;
+    count73thru75 = 0;
+    count76thru78 = 0;
+    count79thru81 = 0;
+    count82thru84 = 0;
+    count85thru86 = 0;
+    count87thru89 = 0;
+    count90thru92 = 0;
+    count93thru95 = 0;
+    count96thru98 = 0;
+    for i in range(0,len(QuerryResponse)):
+        if(QuerryResponse[i][0] != ''):
+            PlayerYear = int( QuerryResponse[i][0].split('-')[2])
+            if(PlayerYear<73):
+                count69thru72+=1;
+            elif(PlayerYear<76):
+                count73thru75+=1;
+            elif(PlayerYear<79):
+                count76thru78+=1;
+            elif(PlayerYear<82):
+                count79thru81+=1;
+            elif(PlayerYear<85):
+                count82thru84+=1;
+            elif(PlayerYear<87):
+                count85thru86+=1;
+            elif(PlayerYear<90):
+                count87thru89+=1;
+            elif(PlayerYear<93):
+                count90thru92+=1;
+            elif(PlayerYear<96):
+                count93thru95+=1;
+            elif(PlayerYear<99):
+                count96thru98+=1;
+
+    dateRanges= ['69-72', '73-75','76-78','79-81','82-84','85-86','87-89','90-92','93-95','96-99']
+    AmtDOBinAgeRange= [count69thru72,count73thru75,count76thru78,count79thru81,count82thru84,count85thru86,count87thru89,count90thru92,count93thru95,count96thru98]
+    fig = plt.figure();
+    ax = fig.add_subplot(111)
+    ax.bar(dateRanges,AmtDOBinAgeRange);
+    plt.suptitle('DOB range');
+    plt.tick_params(axis='x', which='major', labelsize=7)
+    plt.show();
+
+
+    #print(count69thru72);
+    #print(count73thru75);
+    #print(count76thru78);
+    #print(count79thru81);
+    #print(count82thru84);
+    #print(count85thru86);
+    #print(count87thru89);
+    #print(count90thru92);
+    #print(count93thru95);
+    #print(count96thru98);
+
+def AwayWinPercentGraph(teamname, AwayWin):
+    fig = plt.figure();
+    ax = fig.add_subplot(111)
+    ax.plot(teamname,AwayWin)
+    plt.suptitle('Away Win %');
+    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    plt.tick_params(axis='x', which='major', labelsize=7)
+    plt.show();
+
+
+def HomeWinPercentGraph(teamname, HomeWin):
+    fig = plt.figure();
+    ax = fig.add_subplot(111)
+    ax.plot(teamname,HomeWin)
+    plt.suptitle('Home Win %');
+    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    plt.tick_params(axis='x', which='major', labelsize=7)
+    plt.show();
 
 cnx = make_connection()
 cur = cnx.cursor()
 #setup_dp(cur)
 #insert_data(cur)
 createData(cur)
+#CreateDOBGraph(cur);
 cur.close()
 cnx.commit()
 cnx.close()
-createData()
+
+
+#plan of attack is to create multiple math graphs with data away win percentage home win percentage,Date of birth amoung players ,Awaywin percentage
+# we have completed the home wins percentage
+#need to complete
+#
+#
