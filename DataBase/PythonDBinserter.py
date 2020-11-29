@@ -1,4 +1,5 @@
 import pymysql as ps
+import matplotlib.pyplot as plt
 
 #AUTHORS BRYAN SULLIVAN and HENOK KETSELA
 
@@ -37,7 +38,7 @@ def setup_dp(cur):
 
 
 
-#we still need to make tables for player-Deliveries, Team-Deliveries, Deliveries-matches,Team-Matches
+
 def insert_data(cur):
         # Insertions for conditions table
     with open("data/Players.csv", 'r') as r1:
@@ -78,7 +79,7 @@ def insert_data(cur):
 
     # insertions for deliveries join table
 
-    with open("data/deliveries.csv", 'r') as r1:
+    with open("data/deliveriesSmall.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
         for line in r1:
@@ -187,12 +188,17 @@ def insert_data(cur):
                 ball = line.__getitem__(5)
                 ball = str(ball)
                 cur.execute('INSERT IGNORE INTO Deliveries_Matches VALUES (%s,%s,%s,%s,%s,%s)',( MatchID, inning, batting_team, bowling_team,over,ball));
+def createData(cur):
+    #plan of attack is to create multiple math graphs with data away win percentage home win percentage
 
+    data ={}
 
 cnx = make_connection()
 cur = cnx.cursor()
-setup_dp(cur)
-insert_data(cur)
+#setup_dp(cur)
+#insert_data(cur)
+createData(cur)
 cur.close()
 cnx.commit()
 cnx.close()
+createData()
