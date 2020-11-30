@@ -290,12 +290,29 @@ def HomeWinPercentGraph(teamname, HomeWin):
     plt.tick_params(axis='x', which='major', labelsize=7)
     plt.show();
 
+def LocationOfMatchesGraph(cur):
+    cur.execute('use IPL_DATA_SET');
+    cur.execute('Select city, count(*) from Matches group by city');#or should it be selet city, count(*) from Matches group by city
+    QuerryResponse = cur.fetchall();
+    Location= []
+    amount= []
+    for i in range(0,len(QuerryResponse)):
+        if(QuerryResponse[i][0] != ""):
+            Location.insert(0,QuerryResponse[i][0]);
+            amount.insert(0,QuerryResponse[i][1]);
+    plt.pie(amount, labels = Location);
+    plt.show();
+
+
+
 cnx = make_connection()
 cur = cnx.cursor()
 #setup_dp(cur)
 #insert_data(cur)
-createData(cur)
+#createData(cur)
 #CreateDOBGraph(cur);
+LocationOfMatchesGraph(cur);
+
 cur.close()
 cnx.commit()
 cnx.close()
