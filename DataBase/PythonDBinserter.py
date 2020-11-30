@@ -229,7 +229,7 @@ def CreateDOBGraph(cur):
     for i in range(0,len(QuerryResponse)):
         if(QuerryResponse[i][0] != ''):
             PlayerYear = int( QuerryResponse[i][0].split('-')[2])
-            if(PlayerYear<73):
+            if(PlayerYear<73):#this is a switch statement
                 count69thru72+=1;
             elif(PlayerYear<76):
                 count73thru75+=1;
@@ -256,20 +256,11 @@ def CreateDOBGraph(cur):
     ax = fig.add_subplot(111)
     ax.bar(dateRanges,AmtDOBinAgeRange);
     plt.suptitle('DOB range');
+    plt.ylabel("Amount of Players");
+    plt.xlabel("Year (19-)");
     plt.tick_params(axis='x', which='major', labelsize=7)
     plt.show();
 
-
-    #print(count69thru72);
-    #print(count73thru75);
-    #print(count76thru78);
-    #print(count79thru81);
-    #print(count82thru84);
-    #print(count85thru86);
-    #print(count87thru89);
-    #print(count90thru92);
-    #print(count93thru95);
-    #print(count96thru98);
 
 def AwayWinPercentGraph(teamname, AwayWin):
     fig = plt.figure();
@@ -292,10 +283,10 @@ def HomeWinPercentGraph(teamname, HomeWin):
 
 def LocationOfMatchesGraph(cur):
     cur.execute('use IPL_DATA_SET');
-    cur.execute('Select city, count(*) from Matches group by city');#or should it be selet city, count(*) from Matches group by city
+    cur.execute('Select city, count(*) from Matches group by city order by count(*)');#or should it be selet city, count(*) from Matches group by city
     QuerryResponse = cur.fetchall();
-    Location= []
-    amount= []
+    Location=[]
+    amount=[]
     for i in range(0,len(QuerryResponse)):
         if(QuerryResponse[i][0] != ""):
             Location.insert(0,QuerryResponse[i][0]);
@@ -309,8 +300,8 @@ cnx = make_connection()
 cur = cnx.cursor()
 #setup_dp(cur)
 #insert_data(cur)
-#createData(cur)
-#CreateDOBGraph(cur);
+createData(cur)
+CreateDOBGraph(cur);
 LocationOfMatchesGraph(cur);
 
 cur.close()
