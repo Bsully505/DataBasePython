@@ -1,6 +1,7 @@
 import pymysql as ps
 import matplotlib.pyplot as plt
 import matplotlib.axis as ax
+import mplcursors
 
 #AUTHORS BRYAN SULLIVAN and HENOK KETSELA
 
@@ -11,7 +12,6 @@ def make_connection():
                       port=3306, autocommit=True)
 def setup_dp(cur):
 
-# how to code first to do the tables to a find and replace of the table names and then just create the variables
     # Set up db
     cur.execute('DROP DATABASE IF EXISTS IPL_DATA_SET');
     cur.execute('CREATE DATABASE IPL_DATA_SET');
@@ -55,7 +55,7 @@ def insert_data(cur):
             Team = line.__getitem__(5)
             cur.execute('INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
             (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
-            # print(ID_num,sample_ID,primary,secondary,additional_info)
+            
 
     with open("data/teamwise_home_and_away.csv", 'r') as r1:
         # skips first line the headers
@@ -71,15 +71,12 @@ def insert_data(cur):
             home_matches = str(home_matches)
             away_matches = int(line.__getitem__(4))
             away_matches = str(away_matches)
-
-
             cur.execute(
                 'INSERT IGNORE INTO Team VALUES (%s,%s,%s,%s,%s)',
                 (TeamName, home_wins, away_wins, home_matches,away_matches))
 
 
     # insertions for deliveries join table
-
     with open("data/deliveriesSmall.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
@@ -189,30 +186,22 @@ def insert_data(cur):
                 ball = line.__getitem__(5)
                 ball = str(ball)
                 cur.execute('INSERT IGNORE INTO Deliveries_Matches VALUES (%s,%s,%s,%s,%s,%s)',( MatchID, inning, batting_team, bowling_team,over,ball));
-def createData(cur):#change the name of this function
-
-    cur.execute('use IPL_DATA_SET');
-    cur.execute('Select TeamName, HomeWins, AwayWins,HomeMatches, AwayMatches From Team');
-    QuerryResponse  = cur.fetchall();
-    teamname= []
-    HomeWin = []
-    AwayWin = []
-
-
-    for i in range(0, len(QuerryResponse)):
-        teamname.insert(0, QuerryResponse[i][0]);
-        HomeWin.insert(0,(QuerryResponse[i][1]/QuerryResponse[i][3])*100);
-        AwayWin.insert(0,(QuerryResponse[i][2]/QuerryResponse[i][4])*100);
-
-
-    HomeWinPercentGraph(teamname, HomeWin);
-
-    AwayWinPercentGraph(teamname,AwayWin);
-
-
+def createGraph(cur):#change the name of this function
+    fig = plt.figure();
+    fig.subplots_adjust(wspace=0.5, hspace=0.70, left=0.07,right=0.98,top=0.905,bottom=0.129);#changes the dimensions
+    fig.tight_layout();
+    ax = plt.subplot(2,3,1)
+    HomeWinandAwayWinGraph(cur, ax);#allowing to create two graphs using one select statement allows the program to run faster
+    ax = plt.subplot(2,3,3);
+    CreateDOBGraph(cur,ax);
+    ax = plt.subplot(2,2,3);
+    LocationOfMatchesGraph(cur,ax,fig);
+    ax = plt.subplot(2,2,4);
+    coinTossWinnerGraph(cur,ax)
+    plt.show();
     #plt.savefig('HomeWinPercentage.png') to save the file
 
-def CreateDOBGraph(cur):
+def CreateDOBGraph(cur,ax):
     cur.execute('use IPL_DATA_SET');
     cur.execute('select DOB from Player');
     QuerryResponse= cur.fetchall();
@@ -252,65 +241,96 @@ def CreateDOBGraph(cur):
 
     dateRanges= ['69-72', '73-75','76-78','79-81','82-84','85-86','87-89','90-92','93-95','96-99']
     AmtDOBinAgeRange= [count69thru72,count73thru75,count76thru78,count79thru81,count82thru84,count85thru86,count87thru89,count90thru92,count93thru95,count96thru98]
-    fig = plt.figure();
-    ax = fig.add_subplot(111)
     ax.bar(dateRanges,AmtDOBinAgeRange);
-    plt.suptitle('DOB range');
+    ax.set_title('Birth Year');
     plt.ylabel("Amount of Players");
-    plt.xlabel("Year (19-)");
+    plt.xlabel("Year (1900's)");
     plt.tick_params(axis='x', which='major', labelsize=7)
-    plt.show();
 
 
-def AwayWinPercentGraph(teamname, AwayWin):
-    fig = plt.figure();
-    ax = fig.add_subplot(111)
+
+def AwayWinPercentGraph(teamname, AwayWin,ax):
     ax.plot(teamname,AwayWin)
-    plt.suptitle('Away Win %');
+    ax.set(title= 'Away Win %');
+    plt.ylabel("Win %");
+    plt.xlabel("Team");
+    plt.ylim(0,100);
+    ax.xaxis.set_label_coords(0.50, 0.075);
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.tick_params(axis='x', which='major', labelsize=7)
-    plt.show();
 
 
-def HomeWinPercentGraph(teamname, HomeWin):
-    fig = plt.figure();
-    ax = fig.add_subplot(111)
+
+def HomeWinPercentGraph(teamname, HomeWin,ax):
     ax.plot(teamname,HomeWin)
-    plt.suptitle('Home Win %');
+    ax.set(title='Home Win %');
+    plt.ylabel("Win %");
+    plt.xlabel("Team");
+    plt.ylim(0,100);
+    ax.xaxis.set_label_coords(0.50, 0.075);
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.tick_params(axis='x', which='major', labelsize=7)
-    plt.show();
 
-def LocationOfMatchesGraph(cur):
+
+def LocationOfMatchesGraph(cur,ax,fig):
     cur.execute('use IPL_DATA_SET');
     cur.execute('Select city, count(*) from Matches group by city order by count(*)');#or should it be selet city, count(*) from Matches group by city
     QuerryResponse = cur.fetchall();
     Location=[]
     amount=[]
+    otherAmt = 0;
     for i in range(0,len(QuerryResponse)):
         if(QuerryResponse[i][0] != ""):
-            Location.insert(0,QuerryResponse[i][0]);
-            amount.insert(0,QuerryResponse[i][1]);
-    plt.pie(amount, labels = Location);
-    plt.show();
+            if(QuerryResponse[i][1] >=13):
+                Location.insert(0,QuerryResponse[i][0]);
+                amount.insert(0,QuerryResponse[i][1]);
+            else:
+                otherAmt += QuerryResponse[i][1]
+    Location.insert(0,'Other');
+    amount.insert(0,otherAmt);
+    ax.set_title('Location of Matches',y = 1.28);
+    ax.pie(amount, labels = Location,autopct='%1.1f%%',pctdistance =.8,radius = 1.57,labeldistance = 1, rotatelabels=True,startangle= 45);
 
 
+def HomeWinandAwayWinGraph(cur,ax):
+    cur.execute('use IPL_DATA_SET');
+    cur.execute('Select TeamName, HomeWins, AwayWins,HomeMatches, AwayMatches From Team');
+    QuerryResponse  = cur.fetchall();
+    teamname= []
+    HomeWin = []
+    AwayWin = []
+    for i in range(0, len(QuerryResponse)):
+        teamname.insert(0, QuerryResponse[i][0]);
+        HomeWin.insert(0,(QuerryResponse[i][1]/QuerryResponse[i][3])*100);
+        AwayWin.insert(0,(QuerryResponse[i][2]/QuerryResponse[i][4])*100);
+
+    HomeWinPercentGraph(teamname, HomeWin,ax);
+    ax = plt.subplot(2,3,2);
+    AwayWinPercentGraph(teamname,AwayWin,ax);
+
+def coinTossWinnerGraph(cur, ax):
+    cur.execute('use IPL_DATA_SET');
+    cur.execute('Select Tosswinner, count(*) from Matches group by Tosswinner');
+    QuerryResponse = cur.fetchall();
+    Teams = []
+    TeamWinCount = []
+    for i in range(0,len(QuerryResponse)):
+        Teams.insert(0,QuerryResponse[i][0]);
+        TeamWinCount.insert(0,QuerryResponse[i][1]);
+    ax.scatter(Teams,TeamWinCount);
+    ax.set_title('Coin Toss Wins');
+    plt.xlabel('Team')
+    plt.ylabel('Number of Wins');
+    ax.xaxis.set_label_coords(0.50, 0.075);
+    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    plt.tick_params(axis='x', which='major', labelsize=7)
+    crs = mplcursors.cursor(ax,hover=True)
 
 cnx = make_connection()
 cur = cnx.cursor()
 #setup_dp(cur)
 #insert_data(cur)
-createData(cur)
-CreateDOBGraph(cur);
-LocationOfMatchesGraph(cur);
-
+createGraph(cur)
 cur.close()
 cnx.commit()
 cnx.close()
-
-
-#plan of attack is to create multiple math graphs with data away win percentage home win percentage,Date of birth amoung players ,Awaywin percentage
-# we have completed the home wins percentage
-#need to complete
-#
-#
