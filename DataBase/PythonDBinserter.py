@@ -55,7 +55,7 @@ def insert_data(cur):
             Team = line.__getitem__(5)
             cur.execute('INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
             (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
-            
+
 
     with open("data/teamwise_home_and_away.csv", 'r') as r1:
         # skips first line the headers
@@ -199,7 +199,7 @@ def createGraph(cur):#change the name of this function
     ax = plt.subplot(2,2,4);
     coinTossWinnerGraph(cur,ax)
     plt.show();
-    #plt.savefig('HomeWinPercentage.png') to save the file
+    
 
 def CreateDOBGraph(cur,ax):
     cur.execute('use IPL_DATA_SET');
