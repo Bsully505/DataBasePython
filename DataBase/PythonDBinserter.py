@@ -18,25 +18,28 @@ def setup_dp(cur):
     cur.execute('USE IPL_DATA_SET');
 
     # Drop Existing Tables
+
     cur.execute('DROP TABLE IF EXISTS Player');
     cur.execute('DROP TABLE IF EXISTS Deliveries');
-    cur.execute('DROP TABLE IF EXISTS Matches');
     cur.execute('DROP TABLE IF EXISTS Team');
     cur.execute('DROP TABLE IF EXISTS Player_Deliveries');
     cur.execute('DROP TABLE IF EXISTS Team_Deliveries');
     cur.execute('DROP TABLE IF EXISTS Deliveries_Matches');
     cur.execute('DROP TABLE IF EXISTS Team_Matches');
+    cur.execute('DROP TABLE IF EXISTS Matches');
+    cur.execute('DROP TABLE IF EXISTS Cities');
 
     # Create Tables
     cur.execute('''CREATE TABLE Team(TeamName Varchar(50) NOT NULL PRIMARY KEY, HomeWins Int,AwayWins Int, HomeMatches Int, AwayMatches Int);''')
     cur.execute('''CREATE TABLE Player(Name VARCHAR(50) NOT NULL PRIMARY KEY,DOB VarChar(50) NOT NULL,Batting_Hand VARCHAR(15),Bowling_Skill varchar(25) not null, country VARCHAR(30),team varchar(50) references Team(TeamName) );''')
     cur.execute('''CREATE TABLE Deliveries(Match_ID Int NOT NULL, inning Int, Batting_Team VARCHAR(50), Bowling_Team VARCHAR(50), OverNum Int, Ball Int, Batsman Varchar(50), Non_Striker Varchar(50), Bowler Varchar(50), Primary Key(Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
-    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), City Varchar(50), Date Varchar(20), Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
     cur.execute('''create Table Deliveries_Matches(Match_ID int Not Null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
     cur.execute('''Create Table Player_Deliveries (Team Varchar(50) Not Null references Player(Name), DOB Varchar(20) REFERENCES Player(DOB), Match_ID int Not Null REFERENCES Deliveries(Match_ID), inning int REFERENCES Deliveries(inning), batting_team varchar(50) REFERENCES Deliveries(batting_team), bowling_team varchar(50) REFERENCES Deliveries(bowling_team), overnum int REFERENCES Deliveries(overnum), ball int REFERENCES Deliveries(ball), Primary Key (Team, DOB, Match_ID, inning, Batting_Team, Bowling_Team, OverNum, Ball));''')
     cur.execute('''Create Table Team_Matches(TeamName varchar(50) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID),primary key (TeamName, Match_ID));''')
     cur.execute('''Create table Team_Deliveries(TeamName varchar(50) Not null references Team(TeamName), Match_ID int not null references Matches(Match_ID), inning int not null references Deliveries(inning), Batting_team Varchar(50) not null references Deliveries(Batting_team), Bowling_team varchar(50) not null references Deliveries(Bowling_team), Overnum int not null references Deliveries(overnum), Ball int not null references Deliveries(ball), Primary Key (TeamName, Match_ID, inning, Batting_team, Bowling_team, Overnum, ball));''')
-
+    cur.execute('''Create Table Matches (MatchID int NOT Null auto_increment Primary key, Season Varchar(50), CityID int references Cities(CityID), Date Varchar(20), Team1 Varchar(50), Team2 Varchar(50), Tosswinner Varchar(50), Tossdecision Varchar(50), Result VarChar(8));''')
+    cur.execute('''Create table Cities(CityID int Not null Auto_increment, CityName varchar(50) not null references Matches(City), Primary Key(CityID));''')
+    cur.execute('''Create table DistinctCities(DistinctCityName varchar(50) not null, Primary Key(DistinctCityName));''')
 
 
 
@@ -96,6 +99,20 @@ def insert_data(cur):
             cur.execute('INSERT IGNORE INTO Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(Match_ID, inning, Batting_team, Bowling_team, over, Ball, batsman, non_striker, bowler))
 
             # insertion for Matches expression table
+    with open("data/matches.csv", 'r') as r1:
+        next(r1)
+        for line in r1:
+            line = line.split(',')
+            city = line.__getitem__(2);
+            cur.execute('Insert Ignore into DistinctCities Values(%s)',(city));
+
+
+    cur.execute('Select * from DistinctCities');
+    DistictCityResults = cur.fetchall();
+    for i in range(0,len(DistictCityResults)):
+        cur.execute('Insert Ignore into Cities(CityName) Values(%s)',(DistictCityResults[i][0]));
+
+
 
     with open("data/matches.csv", 'r') as r1:
         next(r1)
@@ -104,14 +121,16 @@ def insert_data(cur):
             ID_num = int(line.__getitem__(0))
             ID_num = str(ID_num)
             season = line.__getitem__(1)
-            city = line.__getitem__(2)
+            cur.execute('''select CityID from Cities where CityName = (%s)''',(line.__getitem__(2)));
+            cityid = cur.fetchall()[0]
             date = line.__getitem__(3)
             team1 = line.__getitem__(4)
             team2 = line.__getitem__(5)
             toss_winner = line.__getitem__(6)
             toss_decision = line.__getitem__(7)
             result = line.__getitem__(8)
-            cur.execute('INSERT IGNORE INTO Matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(ID_num, season, city, date, team1,team2,toss_winner,toss_decision,result));
+            cur.execute('INSERT IGNORE INTO Matches VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',(ID_num, season, cityid, date, team1,team2,toss_winner,toss_decision,result));
+
 
      # insertion for Team_Matches and Team_Deliveries and Player_Deliveries expression table
     with open("data/Team_Matches.csv", 'r') as r1:
@@ -186,7 +205,12 @@ def insert_data(cur):
                 ball = line.__getitem__(5)
                 ball = str(ball)
                 cur.execute('INSERT IGNORE INTO Deliveries_Matches VALUES (%s,%s,%s,%s,%s,%s)',( MatchID, inning, batting_team, bowling_team,over,ball));
-def createGraph(cur):#change the name of this function
+
+
+
+
+
+def createGraph(cur):
     fig = plt.figure();
     fig.subplots_adjust(wspace=0.5, hspace=0.70, left=0.07,right=0.98,top=0.905,bottom=0.129);#changes the dimensions
     fig.tight_layout();
@@ -199,7 +223,7 @@ def createGraph(cur):#change the name of this function
     ax = plt.subplot(2,2,4);
     coinTossWinnerGraph(cur,ax)
     plt.show();
-    
+
 
 def CreateDOBGraph(cur,ax):
     cur.execute('use IPL_DATA_SET');
@@ -218,7 +242,7 @@ def CreateDOBGraph(cur,ax):
     for i in range(0,len(QuerryResponse)):
         if(QuerryResponse[i][0] != ''):
             PlayerYear = int( QuerryResponse[i][0].split('-')[2])
-            if(PlayerYear<73):#this is a switch statement
+            if(PlayerYear<73):#this is a switch statement to determine how many people were born in each year
                 count69thru72+=1;
             elif(PlayerYear<76):
                 count73thru75+=1;
@@ -292,7 +316,7 @@ def LocationOfMatchesGraph(cur,ax,fig):
     ax.pie(amount, labels = Location,autopct='%1.1f%%',pctdistance =.8,radius = 1.57,labeldistance = 1, rotatelabels=True,startangle= 45);
 
 
-def HomeWinandAwayWinGraph(cur,ax):
+def HomeWinandAwayWinGraph(cur,ax):#since the data of homewin and awaywins had a lot of similarities it made sense to put them in the same function
     cur.execute('use IPL_DATA_SET');
     cur.execute('Select TeamName, HomeWins, AwayWins,HomeMatches, AwayMatches From Team');
     QuerryResponse  = cur.fetchall();
@@ -328,8 +352,8 @@ def coinTossWinnerGraph(cur, ax):
 
 cnx = make_connection()
 cur = cnx.cursor()
-#setup_dp(cur)
-#insert_data(cur)
+setup_dp(cur)
+insert_data(cur)
 createGraph(cur)
 cur.close()
 cnx.commit()
