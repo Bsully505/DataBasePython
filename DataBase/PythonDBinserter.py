@@ -59,7 +59,7 @@ def insert_data(cur):
             cur.execute('INSERT IGNORE INTO Player VALUES (%s,%s,%s,%s,%s,%s)',
             (PlayerName, DOB, Batting_Hand, Bowling_Skill, Country,Team))
 
-
+        # insertions for Team table
     with open("data/teamwise_home_and_away.csv", 'r') as r1:
         # skips first line the headers
         next(r1)
@@ -79,9 +79,9 @@ def insert_data(cur):
                 (TeamName, home_wins, away_wins, home_matches,away_matches))
 
 
-    # insertions for deliveries join table
+            # insertions for a reduced Deliveries table to save time
     with open("data/deliveriesSmall.csv", 'r') as r1:
-        # skips first line the headers
+            # skips first line the headers
         next(r1)
         for line in r1:
             line = line.split(',')
@@ -106,14 +106,14 @@ def insert_data(cur):
             city = line.__getitem__(2);
             cur.execute('Insert Ignore into DistinctCities Values(%s)',(city));
 
-
+            #create temp table to get rid of update, delete, insert anomilies
     cur.execute('Select * from DistinctCities');
     DistictCityResults = cur.fetchall();
     for i in range(0,len(DistictCityResults)):
         cur.execute('Insert Ignore into Cities(CityName) Values(%s)',(DistictCityResults[i][0]));
 
 
-
+        # insertions for match table
     with open("data/matches.csv", 'r') as r1:
         next(r1)
         for line in r1:
@@ -146,6 +146,7 @@ def insert_data(cur):
                 'INSERT IGNORE INTO Team_Matches VALUES (%s,%s)',
                 (TeamName, Match_ID))
 
+            # insertions for Team_Deliveriesde join table
     with open("data/Team_Deliveries.csv", 'r') as r1:
         next(r1)
         for line in r1:
@@ -166,6 +167,7 @@ def insert_data(cur):
             ball = str(ball)
             cur.execute('INSERT IGNORE INTO Team_Deliveries VALUES (%s,%s,%s,%s,%s,%s,%s)',(TeamName, match_id, inning, batting_team, bowler,over,ball));
 
+            # insertions for Player_Deliveries join table
     with open("data/Player_Deliveries.csv", 'r') as r1:
          next(r1)
          for line in r1:
@@ -209,10 +211,10 @@ def insert_data(cur):
 
 
 
-
+# creates dashboard and calls functions to initalize graphs
 def createGraph(cur):
     fig = plt.figure();
-    fig.subplots_adjust(wspace=0.5, hspace=0.70, left=0.07,right=0.98,top=0.905,bottom=0.129);#changes the dimensions
+    fig.subplots_adjust(wspace=0.29, hspace=0.875, left=0.07,right=0.98,top=0.905,bottom=0.129);#changes the dimensions
     fig.tight_layout();
     ax = plt.subplot(2,3,1)
     HomeWinandAwayWinGraph(cur, ax);#allowing to create two graphs using one select statement allows the program to run faster
@@ -222,12 +224,16 @@ def createGraph(cur):
     LocationOfMatchesGraph(cur,ax,fig);
     ax = plt.subplot(2,2,4);
     coinTossWinnerGraph(cur,ax)
+    plt.suptitle('IPL Dashboard');
     plt.show();
 
-
+# creates date of birth bar graph
 def CreateDOBGraph(cur,ax):
+    # Querring the data base to retrive DOB of each player
     cur.execute('use IPL_DATA_SET');
     cur.execute('select DOB from Player');
+
+    # Creates variable for the results fo the query
     QuerryResponse= cur.fetchall();
     count69thru72 = 0;
     count73thru75 = 0;
@@ -239,10 +245,13 @@ def CreateDOBGraph(cur,ax):
     count90thru92 = 0;
     count93thru95 = 0;
     count96thru98 = 0;
+
+    # for loop to iterate through query and parsing
     for i in range(0,len(QuerryResponse)):
         if(QuerryResponse[i][0] != ''):
             PlayerYear = int( QuerryResponse[i][0].split('-')[2])
-            if(PlayerYear<73):#this is a switch statement to determine how many people were born in each year
+            #this acts as a switch statement to determine how many people were born in each year
+            if(PlayerYear<73):
                 count69thru72+=1;
             elif(PlayerYear<76):
                 count73thru75+=1;
@@ -262,17 +271,20 @@ def CreateDOBGraph(cur,ax):
                 count93thru95+=1;
             elif(PlayerYear<99):
                 count96thru98+=1;
-
+    # Names each data on graph
     dateRanges= ['69-72', '73-75','76-78','79-81','82-84','85-86','87-89','90-92','93-95','96-99']
+    # data for graph
     AmtDOBinAgeRange= [count69thru72,count73thru75,count76thru78,count79thru81,count82thru84,count85thru86,count87thru89,count90thru92,count93thru95,count96thru98]
     ax.bar(dateRanges,AmtDOBinAgeRange);
     ax.set_title('Birth Year');
     plt.ylabel("Amount of Players");
     plt.xlabel("Year (1900's)");
+
+    # edit font size to fit better on dashboard
     plt.tick_params(axis='x', which='major', labelsize=7)
 
 
-
+# Creates line graph based on Away win percentages for each team
 def AwayWinPercentGraph(teamname, AwayWin,ax):
     ax.plot(teamname,AwayWin)
     ax.set(title= 'Away Win %');
@@ -284,7 +296,7 @@ def AwayWinPercentGraph(teamname, AwayWin,ax):
     plt.tick_params(axis='x', which='major', labelsize=7)
 
 
-
+# Creates line graph based on Home win percentages for each team
 def HomeWinPercentGraph(teamname, HomeWin,ax):
     ax.plot(teamname,HomeWin)
     ax.set(title='Home Win %');
@@ -295,10 +307,10 @@ def HomeWinPercentGraph(teamname, HomeWin,ax):
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.tick_params(axis='x', which='major', labelsize=7)
 
-
+# creates pie graph based on location of each match
 def LocationOfMatchesGraph(cur,ax,fig):
     cur.execute('use IPL_DATA_SET');
-    cur.execute('Select city, count(*) from Matches group by city order by count(*)');#or should it be selet city, count(*) from Matches group by city
+    cur.execute('Select CityName, count(*) from Matches M, Cities C where M.CityID= C.CityID group by CityName order by count(*)');#or should it be selet city, count(*) from Matches group by city
     QuerryResponse = cur.fetchall();
     Location=[]
     amount=[]
@@ -315,8 +327,8 @@ def LocationOfMatchesGraph(cur,ax,fig):
     ax.set_title('Location of Matches',y = 1.28);
     ax.pie(amount, labels = Location,autopct='%1.1f%%',pctdistance =.8,radius = 1.57,labeldistance = 1, rotatelabels=True,startangle= 45);
 
-
-def HomeWinandAwayWinGraph(cur,ax):#since the data of homewin and awaywins had a lot of similarities it made sense to put them in the same function
+ #since the data of homewin and awaywins had a lot of similarities it made sense to put them in the same function and use one querry
+def HomeWinandAwayWinGraph(cur,ax):
     cur.execute('use IPL_DATA_SET');
     cur.execute('Select TeamName, HomeWins, AwayWins,HomeMatches, AwayMatches From Team');
     QuerryResponse  = cur.fetchall();
@@ -332,6 +344,7 @@ def HomeWinandAwayWinGraph(cur,ax):#since the data of homewin and awaywins had a
     ax = plt.subplot(2,3,2);
     AwayWinPercentGraph(teamname,AwayWin,ax);
 
+# Creates scatter graph based on the number coin toss won by each team
 def coinTossWinnerGraph(cur, ax):
     cur.execute('use IPL_DATA_SET');
     cur.execute('Select Tosswinner, count(*) from Matches group by Tosswinner');
@@ -350,10 +363,11 @@ def coinTossWinnerGraph(cur, ax):
     plt.tick_params(axis='x', which='major', labelsize=7)
     crs = mplcursors.cursor(ax,hover=True)
 
+# Executes intire program
 cnx = make_connection()
 cur = cnx.cursor()
-setup_dp(cur)
-insert_data(cur)
+#setup_dp(cur)
+#insert_data(cur)
 createGraph(cur)
 cur.close()
 cnx.commit()
